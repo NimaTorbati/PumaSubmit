@@ -11,17 +11,17 @@ import cv2
 
 if __name__ == '__main__':
     tissue_labels = ['tissue_white_background','tissue_stroma','tissue_blood_vessel','tissue_tumor','tissue_epidermis','tissue_necrosis']
-    # final_target_size = (1024,1024)
     tissue_images_path ='/home/ntorbati/STORAGE/PumaDataset/01_training_dataset_tif_ROIs/'
     tissue_labels_path = '/home/ntorbati/STORAGE/PumaDataset/01_training_dataset_geojson_tissue/'
-    #
     final_target_size = (1024,1024)
-    n_class = 11
-    fine_tune = False
-    use_necros = False
-    progressive = True
-    parallel = False
 
+    n_class = 11 # number of dataset classes
+
+    # fine tune or transfer learning specs
+    fine_tune = False # if fineTune from another dataset with different number of classes
+    use_necros = True # we have used MUTILS panoptic dataset in our training to increase method performance for Necrosis tissue
+    progressive = False # if True model trains in a progressive way. First. last layer, second, Decoder layer, third, Encoder layer
+    parallel = True # parallel GPU
 
     device2 = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     in_channels = 4
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         val_index_metas = splits_metas[folds][1]
 
 
-
+        # here we stick the 4 channel from tissue predictions
         train_images_tissues = np.zeros((len(train_index_primary), final_target_size[0], final_target_size[1]),dtype=np.uint8)
         for ind in range(len(train_index_primary)):
             tis_path = '/home/ntorbati/PycharmProjects/pythonProject/validation_prediction/PrimarytissueFinal/all/training_set_primary_roi_' + f"{train_index_primary[ind]+1:03d}" + '.tif'

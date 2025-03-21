@@ -11,35 +11,30 @@ from torch import nn
 import cv2
 from transformers import SegformerForSemanticSegmentation, SegformerImageProcessor, SegformerConfig
 if __name__ == '__main__':
+    # dataset infos
     tissue_labels = ['tissue_white_background','tissue_stroma','tissue_blood_vessel','tissue_tumor','tissue_epidermis','tissue_necrosis']
-
-    # final_target_size = (1024,1024)
     tissue_images_path ='/home/ntorbati/STORAGE/PumaDataset/01_training_dataset_tif_ROIs/'
     tissue_labels_path = '/home/ntorbati/STORAGE/PumaDataset/01_training_dataset_geojson_tissue/'
-    #
-    # all_tissue_data = np.sort([tissue_images_path + image for image in os.listdir(tissue_images_path)])
-    # all_tissue_labels = np.sort([tissue_labels_path + labels for labels in os.listdir(tissue_labels_path)])
-    # image_data, mask_data = load_data_tissue(target_size = final_target_size,
-    #                                   data_path = all_tissue_data,
-    #                                   annot_path = all_tissue_labels,
-    #                                   tissue_labels = tissue_labels,
-    #                                   im_size = [1024,1024])
     final_target_size = (1024,1024)
-    n_class = 6
-    fine_tune = False
-    use_necros = True
-    progressive = False
-    parallel = True
+    n_class = 6 # number of tissue classes
+
+    # fine tune or transfer learning specs
+    fine_tune = False # if fineTune from another dataset with different number of classes
+    use_necros = True # we have used MUTILS panoptic dataset in our training to increase method performance for Necrosis tissue
+    progressive = False # if True model trains in a progressive way. First. last layer, second, Decoder layer, third, Encoder layer
+    parallel = True # parallel GPU
+
+
+    device2 = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    in_channels = 3 # input channel
+    val_percent = 0.2 #validation train percentage
+
+
 
     if fine_tune:
         n_class_old = 6
         n_class_new = n_class
         fineTune_PATH = "/home/ntorbati/PycharmProjects/pythonProject/E:/PumaDataset/checkpoints/RawMetasPanoptSameclassesSegFormer/check.pth"
-
-    device2 = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    in_channels = 3
-
-    val_percent = 0.2
 
     if use_necros:
         image_data_necros = np.load('/home/ntorbati/STORAGE/PumaDataset/1024_ims/necros_ims.npy')
@@ -56,14 +51,15 @@ if __name__ == '__main__':
 
         mask_data_necros = np.array([cv2.resize(mask, final_target_size, interpolation=cv2.INTER_NEAREST) for mask in mask_data_necros])
 
+    # load data in numpy array format
     image_data = np.load('/home/ntorbati/STORAGE/PumaDataset/1024_ims/ims.npy')
     mask_data = np.load('/home/ntorbati/STORAGE/PumaDataset/1024_ims/masks.npy')
 
-
+    # this is a test for join class experiment
     # mask_data, tissue_labels, _ = add_small_labels(mask_data, tissue_labels)
     # tissue_labels = ['tissue_white_background','tissue_stroma','tissue_blood_vessel','tissue_tumor','tissue_epidermis','tissue_necrosis']
 
-
+    # we split data for primary and metastatic for a better performance
     image_data_metas = image_data[0:102]
     mask_data_metas = mask_data[0:102]
 
@@ -120,23 +116,22 @@ if __name__ == '__main__':
         train_indexes = np.linspace(0, len(train_images)-1, len(train_images))
         # train_indexes = np.append(train_indexes, diff_cases)
 
-        dir_checkpoint = Path('E:/PumaDataset/checkpoints/foldRawPrimary2segformerMetas' + str(folds) + '/')
+
+        # here validation images, ground truth and predictions are stored in memory folders for future analysis.
+        dir_checkpoint = Path('E:/PumaDataset/checkpoints/foldRawPrimary2segformerMetas' + str(folds) + '/') # model weights checkpoint
         val_save_path = '/home/ntorbati/PycharmProjects/pythonProject/validation_ground_truth/fold2segformerMetas' + str(folds)
         val_save_path1 = '/home/ntorbati/PycharmProjects/pythonProject/validation_images/fold2segformerMetas' + str(folds)
         output_folder = '/home/ntorbati/PycharmProjects/pythonProject/validation_prediction/fold2segformerMetas' + str(folds)
-
-
         copy_data(validation_indices = [], data_path = tissue_labels_path,data_path1= tissue_images_path, save_path = val_save_path,save_path1 = val_save_path1, data_type = 'primary')
         copy_data(validation_indices = val_index_metas, data_path = tissue_labels_path,data_path1=tissue_images_path, save_path = val_save_path,save_path1 = val_save_path1, data_type = 'metastatic')
 
 
-        # train_images, train_masks = blood_vessel_aug(train_masks = train_masks, train_images = train_images, num_classes = n_class)
-
+        #trainig class weights, these values are estimated based on total number of pixels for each class and several experiments
         class_weights = [1, 7, 4, 1.5, 0.5,4]
         class_weights = torch.tensor(class_weights, device=device2,dtype=torch.float16)
+
         iters = [400]
         lr = 1e-5
-
         scals = 0
 
 

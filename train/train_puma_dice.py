@@ -12,20 +12,17 @@ from LoadPumaData import load_data_tissue,PumaTissueDataset
 from utils import compute_puma_dice_micro_dice
 from utils import FocalLoss
 from torch.cuda.amp import autocast, GradScaler
+from class_augs import tissue_aug_gpu
 import torch.nn.utils
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from utils import puma_dice_loss, circular_augmentation,random_sub_image_sampling
 import numpy as np
 
-dir_img = Path('./data/imgs/')
-dir_mask = Path('./data/masks/')
-dir_checkpoint = Path('E:/PumaDataset/checkpoints/')
 
 
 def upsample_difficult_cases(dice_epoch = None, inddss = None):
     diff_inds = inddss[np.where(dice_epoch > np.median(dice_epoch))[0]]
-
     return diff_inds
 
 
@@ -48,39 +45,37 @@ def train_model(
         n_class = 6,
         image_data1 = None,
         mask_data1 = None,
-        val_images = None,
+        val_images = None,# None for training on whole dataset1
         val_masks = None,
         class_weights = torch.ones(6),
         augmentation = True,
         val_batch = 1,
     early_stopping = 8,
         ful_size = (1024,1024),
-        grad_wait = 1,
-        logg = False,
+        grad_wait = 1, # for small batch size, we manually save and update gradients
+        logg = False,# logger file
         logg_selected = False,
         val_augmentation = None,
-
-        train_indexes=None,
+        train_indexes=None,# with this parameter we found difficult frames to learn during training and upsampled these frames in training
         input_folder='',
         output_folder='',
         ground_truth_folder='',
-        phase_mode = ['train', 'val'],
-        test_images=None,
+        phase_mode = ['train', 'val'],# there training modes are possible ['train'], ['train','val] or ['train', 'val', 'test']
+        test_images=None,# None for a train-val approach and not train-val-test
         test_masks=None,
         test_folder='',
         test_output_folder='',
         test_ground_truth_folder='',
         folds = None,
-        dir_checkpoint = Path('E:/PumaDataset/checkpoints/'),
-        er_di = False,
-        progressive = False,
+        dir_checkpoint = Path('E:/PumaDataset/checkpoints/'),#model checkpoint save directory
+        er_di = False, # this was written for an experiment for erosion, dilation effect analysis
+        progressive = False, # progressive training approach
         necros_im = None,
-        model_name = '',
-        val_sleep_time = 0
+        model_name = '',# there are two models available: ['segformer'] or, ['unet']
+        val_sleep_time = 0 # starts validation after val_sleep_time epochs
 
 ):
     # 1. Create dataset
-
     train_set = PumaTissueDataset(image_data1,
                                       mask_data1,
                                       n_class1=n_class,
@@ -113,11 +108,10 @@ def train_model(
                                       target_size=ful_size,
                                       mode='valid',
                                      er_di = er_di)
-    # 2. Split into train / validation partitions
+    # check if everything is correct
     # test_im = val_set.__getitem__(0)
 
     n_train = len(train_set)
-    # train_set, val_set = random_split(dataset, [n_train, n_val], generator=torch.Generator().manual_seed(1))
 
     # 3. Create data loaders
     loader_args = dict(batch_size=batch_size, num_workers=0)#os.cpu_count(), pin_memory=True)
@@ -144,11 +138,6 @@ def train_model(
 
 
     # (Initialize logging)
-    # experiment = wandb.init(project='U-Net', resume='allow', anonymous='must')
-    # experiment.config.update(
-    #     dict(epochs=epochs, batch_size=batch_size, learning_rate=learning_rate,
-    #          val_percent=val_percent, save_checkpoint=save_checkpoint, img_scale=img_scale, amp=amp)
-    # )
     if logg:
         # Create a logger instance
         logging1 = logging.getLogger(__name__)
@@ -180,8 +169,6 @@ def train_model(
         ''')
 
     # 4. Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
-    # optimizer = optim.RMSprop(model.parameters(),
-    #                           lr=learning_rate, weight_decay=weight_decay, momentum=momentum, foreach=True)
     if progressive:
         optimizer = optim.Adam([
             {'params': model.encoder.parameters(), 'lr': 1e-4},  # Low LR for encoder
@@ -193,7 +180,10 @@ def train_model(
         # optimizer = optim.AdamW(model.parameters(), lr=learning_rate,
         #                         weight_decay=1e-4)  # Adjust weight_decay if needed
 #    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
+    focal_loss_fn = FocalLoss(gamma=2, alpha=class_weights.float())
+
     if model_name == 'segformer':
+        # since segformer learns faster
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=5,factor=weight_decay,min_lr=1e-7,cooldown=2)  # goal: maximize Dice score
     else:
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=50,factor=weight_decay,min_lr=1e-7,cooldown=10)  # goal: maximize Dice score
@@ -203,7 +193,6 @@ def train_model(
     # 5. Begin training
     counter = 0
     random.seed(42)
-    focal_loss_fn = FocalLoss(gamma=2, alpha=class_weights.float())
     # images, true_masks = dataloaders['train']
     nec_tis = False
     all_epochs = epochs
@@ -211,7 +200,7 @@ def train_model(
         "nvidia/segformer-b2-finetuned-ade-512-512", do_resize=False, do_rescale=False)
     dice_cof = 0.5
     m_dice_cof = 0.5
-    if progressive:
+    if progressive: # set gradient update for all parameters False
         for param in model.encoder.parameters():
             param.requires_grad = False
         for param in model.decoder.parameters():
@@ -256,38 +245,15 @@ def train_model(
                     epoch_dice = torch.zeros(n_class, device=device)
                     with tqdm(total=n_train, desc=f'Epoch {epoch}/{epochs}', unit='img') as pbar:
                         for images, true_masks, inds in dataloaders[phase]:
-                            # assert images.shape[1] == 3, f"Images should have 3 channels, but got {images.shape[1]}."
-                            # if necros_im is not None:
-                            #     aug_num = random.choice(range(len(necros_im)))
-                            #     im , mask, _ = train_set.__getitem__(aug_num)
-                            #     images[0] = torch.tensor(im,dtype=torch.float32)
-                            #     true_masks[0] = torch.tensor(mask, dtype=torch.long)
-                            # Move data to device
-                            # images, true_masks = random_sub_image_sampling(images, true_masks, sub_size = sub_size)
-
 
                             images = images.to(device=device, dtype=torch.float32)
                             true_masks = true_masks.to(device=device, dtype=torch.long)
 
 
-                            #
-                            # aug_num = random.choice([0,1,2,3,5,6,7,8,9,10])
-                            # # print('random_staff = ', aug_num, class_num)
-                            # if aug_num > 4:
-                            #     images,true_masks = circular_augmentation(images, true_masks, 5, 40, 50, 0.50)
 
-
-
-
-
-                            # if (epoch>100) == 0:
-                            #
-                            #     class_weights[5]=1
-                            #
-                            #     class_weights = torch.tensor(class_weights, device=device, dtype=torch.float16)
-                            #     focal_loss_fn = FocalLoss(gamma=2, alpha=class_weights.float())
+                            # this is a specific calss stick augmentation specially for blood vessel tissue
                             # if model_name != 'segformer':
-                            # class_num = [2,4]
+                            # class_num = [2]
                             # class_num = random.choice(class_num)
                             # aug_num = random.choice([0,1,2,3,5,6,7,8,9,10])
                             # # print('random_staff = ', aug_num, class_num)
@@ -298,6 +264,8 @@ def train_model(
                             # if aug_num > 2:
                             #     images, true_masks = tissue_aug_gpu(train_masks=true_masks, train_images=images,
                             #                                     num_classes=n_class, class_num1=class_num)
+
+
                             true_masks = true_masks.long()
 
 
@@ -308,11 +276,6 @@ def train_model(
                                 if augmentation:
                                     images, true_masks = aug_pipeline(image=images, mask=true_masks)
 
-
-                            # if (images.min())<0:
-                            #     images = images + (-1*images.min())
-                            # if (images.max())>1:
-                            #     images = images/(images.max())
 
                             torch.clamp(images, 0, 1)
 
@@ -347,19 +310,10 @@ def train_model(
 
                                 loss = loss1 + loss2
 
-                            # if torch.isnan(masks_pred).any():
-                            #     print("NaN detected in predictions!")
 
-                            # print(f'Image Min: {images.min()}, Image Max: {images.max()}')
 
                             # Backward pass with gradient scaling
                             scaler.scale(loss).backward()
-
-                            # if loss.item()<0:
-                            #     print(f'Batch Loss: {loss.item()}')
-
-                            # if torch.isnan(loss) or torch.isinf(loss):
-                            #     print("NaN or Inf detected in loss!")
 
                             # Gradient clipping
                             scaler.unscale_(optimizer)
@@ -391,8 +345,6 @@ def train_model(
                 if phase == 'train':
                     epoch_loss /= n_train  # Divide by total training samples
                     epoch_dice /= n_train
-                    if epoch_loss > 2.5 or epoch_loss < 0:
-                        print('wtf')
                     print(epoch_dice.mean(), epoch_loss)
                 elif phase == 'val' and epoch> val_sleep_time:  # Validation phase
                     if (model_name != 'segformer') or (epoch%10 == 0):
@@ -459,19 +411,11 @@ def train_model(
                                                                                                     save_jpg=True)
                         if folds is None:
                             print("model micro val_score = ", micro_dices, mean_micro_dice)
-                        mean_micro_dice[4] = 0.1*mean_micro_dice[4]
+                        mean_micro_dice[4] = 0.1*mean_micro_dice[4]# decrease model sensitivity to necrosis
                         if model_name == 'segformer':
                             mean_micro_dice[1] = 1 * mean_micro_dice[1]
                         micro_dices = np.mean(mean_micro_dice[0:num_classes-1])
-                        # scheduler.step(val_dice.mean())
-                        # if (epoch % 10) == 0:
-                        #     dice_cof -= 0.1
-                        #     m_dice_cof += 0.1
-                        #
-                        #     if dice_cof<0:
-                        #         dice_cof = 0
-                        #     if m_dice_cof > 1:
-                        #         dice_cof = 1
+
 
                         total_dice = dice_cof * mean_puma_dice + m_dice_cof * micro_dices
                         scheduler.step(total_dice)
@@ -592,13 +536,7 @@ def train_model(
 
 
 
-                # # Logging
-                # if phase == 'train':
-                #     epoch_loss /= n_train  # Divide by total training samples
-                #     epoch_dice /= n_train
-                #
-                # print(epoch_dice)
-                # if (folds is None) and (phase == 'val'):
+
                 if phase == 'train':
                     epoch_loss /= n_train  # Divide by total training samples
                     epoch_dice /= n_train

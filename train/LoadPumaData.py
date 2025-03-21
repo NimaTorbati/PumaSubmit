@@ -220,38 +220,6 @@ class PumaTissueDataset(Dataset):
             dilated_image = cv2.dilate(image, disk_kernel, iterations=1)
             image = np.concatenate((image,eroded_image, dilated_image), axis=2)
 
-        # if self.transform is not None:
-        #     image, temp = augs_mine(images = image, masks = temp, num_classes = self.n_class)
-        #
-        # # if self.target_size[0]!=self.size[0]:
-        # image = cv2.resize(image, self.size)
-        #
-        # # if self.target_size[0]!=self.size[0]:
-        # temp1 = np.zeros((self.size[0],self.size[1],self.n_class))
-        # for i in range(self.n_class):
-        #     if len(temp.shape)>2:
-        #         temp1[:,:,i] = cv2.resize(temp[:,:,i], self.size, interpolation=cv2.INTER_NEAREST)
-        #     else:
-        #         # tempp = np.zeros(temp.shape)
-        #         # tempp[temp == i] = int(i)
-        #         # temp1[:,:,i] = cv2.resize(tempp, self.size, interpolation=cv2.INTER_NEAREST)
-        #
-        #         temp = cv2.resize(temp, self.size, interpolation=cv2.INTER_NEAREST)
-        #
-        #
-        #
-        # mask = 255*np.ones((self.size[0],self.size[1],3),dtype=np.uint8)
-        # if self.transform is not None:
-        #     if self.input_augs is not None:
-        #         input_augs = self.input_augs.to_deterministic()
-        #         image = input_augs.augment_image(image)
-        #
-        #     if self.shape_augs is not None:
-        #         shape_augs = self.shape_augs.to_deterministic()
-        #         image = shape_augs.augment_image(image)
-        #         temp = shape_augs.augment_image(temp)
-        #         mask = shape_augs.augment_image(mask)
-        #         image = (255-mask) + image
 
         image = image/255
         image = np.transpose(image, (2, 0, 1))
@@ -375,39 +343,3 @@ class PumaTissueDataset(Dataset):
 
         return shape_augs, input_augs
 
-
-
-
-
-if __name__ == "__main__":
-    tissue_images_path ='E:/PumaDataset/01_training_dataset_tif_ROIs/'
-    tissue_labels_path = 'E:/PumaDataset/01_training_dataset_geojson_tissue/'
-
-    all_tissue_data = [tissue_images_path + image for image in os.listdir(tissue_images_path)]
-    all_tissue_labels = [tissue_labels_path + labels for labels in os.listdir(tissue_labels_path)]
-
-    tissue_labels = ['tissue_white_background','tissue_stroma','tissue_blood_vessel','tissue_tumor','tissue_epidermis','tissue_necrosis']
-    target_size = (512,512)
-    X_data, y_data = load_data_tissue(target_size = target_size,
-                                      data_path = all_tissue_data[0:3],
-                                      annot_path = all_tissue_labels[0:3],
-                                      tissue_labels = tissue_labels,
-                                      im_size = [1024,1024])
-    n_class  = 6
-    train_dataset = PumaTissueDataset(X_data,
-                                      y_data,
-                                      n_class1=n_class,
-                                      size1=target_size,
-                                    device1=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
-                                      transform = True)
-    image,mask = train_dataset.__getitem__(0)
-    a = 2
-    plt.imshow(X_data[0,:,:]/255)
-    plt.show()
-    plt.imshow(y_data[0,:,:,2])
-    plt.show()
-    plt.imshow(y_data[0,:,:,3])
-    plt.show()
-    plt.imshow(image[0,:,:].cpu())
-    plt.show()
-    a=1
