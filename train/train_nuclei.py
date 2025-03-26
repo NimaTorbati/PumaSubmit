@@ -45,7 +45,7 @@ if __name__ == '__main__':
         mask_data_necros = np.load('/home/ntorbati/STORAGE/PumaDataset/1024_ims/masks_panopt_nuclei.npy')
         mask_data_necros = mask_data_necros[0:100]
 
-        res = 800
+        res = 880
         image_data_necros = image_data_necros[:, 0:res, 0:res, :]
         mask_data_necros = mask_data_necros[:, 0:res, 0:res]
 
