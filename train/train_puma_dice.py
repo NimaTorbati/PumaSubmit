@@ -72,8 +72,8 @@ def train_model(
         progressive = False, # progressive training approach
         necros_im = None,
         model_name = '',# there are two models available: ['segformer'] or, ['unet']
-        val_sleep_time = 0 # starts validation after val_sleep_time epochs
-
+        val_sleep_time = 0, # starts validation after val_sleep_time epochs
+        nuclei = False
 ):
     # 1. Create dataset
     train_set = PumaTissueDataset(image_data1,
@@ -347,7 +347,7 @@ def train_model(
                     epoch_dice /= n_train
                     print(epoch_dice.mean(), epoch_loss)
                 elif phase == 'val' and epoch> val_sleep_time:  # Validation phase
-                    if (model_name != 'segformer') or (epoch%10 == 0):
+                    if (model_name != 'segformer') or (epoch%1 == 0):
                         model.eval()
                         val_loss = 0
                         val_dice = torch.zeros(n_class, device=device)
@@ -399,7 +399,10 @@ def train_model(
 
                     # Average metrics
 
-
+                        if nuclei:
+                            in_channels = 4
+                        else:
+                            in_channels = 3
                         mean_puma_dice, micro_dices, mean_micro_dice = compute_puma_dice_micro_dice(model=model,
                                                                                                     target_siz=(1024,1024),
                                                                                                     epoch=epoch,
@@ -408,6 +411,7 @@ def train_model(
                                                                                                     ground_truth_folder=ground_truth_folder,
                                                                                                     device=device,
                                                                                                     er_di = er_di,
+                                                                                                    in_channels=in_channels,
                                                                                                     save_jpg=True)
                         if folds is None:
                             print("model micro val_score = ", micro_dices, mean_micro_dice)
@@ -434,15 +438,15 @@ def train_model(
                             if model_name == 'segformer':
                                 mean_micro_dice[1] = 1 * mean_micro_dice[1]
                             best_dice_class = mean_micro_dice
-                            mean_puma_dice, micro_dices, mean_micro_dice = compute_puma_dice_micro_dice(model=model,
-                                                                                                        target_siz=(1024,1024),
-                                                                                                        epoch=epoch,
-                                                                                                        input_folder=input_folder,
-                                                                                                        output_folder=output_folder,
-                                                                                                        ground_truth_folder=ground_truth_folder,
-                                                                                                        device=device,
-                                                                                                        er_di=er_di,
-                                                                                                        save_jpg = True)
+                            # mean_puma_dice, micro_dices, mean_micro_dice = compute_puma_dice_micro_dice(model=model,
+                            #                                                                             target_siz=(1024,1024),
+                            #                                                                             epoch=epoch,
+                            #                                                                             input_folder=input_folder,
+                            #                                                                             output_folder=output_folder,
+                            #                                                                             ground_truth_folder=ground_truth_folder,
+                            #                                                                             device=device,
+                            #                                                                             er_di=er_di,
+                            #                                                                             save_jpg = True)
                             if logg:
                                 logging1.info(f'''saving best model val_score =:
                                 micro_dices:{micro_dices}

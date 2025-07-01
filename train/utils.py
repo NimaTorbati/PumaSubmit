@@ -1049,7 +1049,8 @@ def puma_dice_loss(preds, targets, eps=1e-5):
 
 def compute_puma_dice_micro_dice(model = None, target_siz = None,epoch = 1, input_folder = '', output_folder = '', ground_truth_folder = '', device = None, model1=None,
                                  weights_list = None, er_di = False, augment_all = True, save_jpg = False, file_path = None,
-                                 classifier_mode = False
+                                 classifier_mode = False,
+                                in_channels = 3
                                  ):
     # input_folder = "/home/ntorbati/PycharmProjects/pythonProject/validation_images2"
     # output_folder = "/home/ntorbati/PycharmProjects/pythonProject/validation_prediction2"
@@ -1089,6 +1090,8 @@ def compute_puma_dice_micro_dice(model = None, target_siz = None,epoch = 1, inpu
             elif image.shape[2] != 3:
                 raise ValueError(f"Unexpected number of channels in image: {file_name}")
 
+
+
             if er_di:
                 disk_radius = 5
                 kernel_size = (2 * disk_radius + 1, 2 * disk_radius + 1)
@@ -1100,6 +1103,12 @@ def compute_puma_dice_micro_dice(model = None, target_siz = None,epoch = 1, inpu
                 # Apply dilation
                 dilated_image = cv2.dilate(image, disk_kernel, iterations=1)
                 image = np.concatenate((image, eroded_image, dilated_image), axis=2)
+
+
+            if in_channels == 4:
+                tis_path = '/home/ntorbati/PycharmProjects/pythonProject/validation_prediction/nuclei_10class_all/' + file_name
+                im = cv2.cvtColor(cv2.imread(tis_path), cv2.COLOR_BGR2GRAY)
+                image = np.concatenate((image, im[:, :, np.newaxis]*50), axis=2)
 
             image = cv2.resize(image, target_siz)
 

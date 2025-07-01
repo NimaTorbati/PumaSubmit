@@ -22,7 +22,7 @@ if __name__ == '__main__':
     fine_tune = False # if fineTune from another dataset with different number of classes
     use_necros = True # we have used MUTILS panoptic dataset in our training to increase method performance for Necrosis tissue
     progressive = False # if True model trains in a progressive way. First. last layer, second, Decoder layer, third, Encoder layer
-    parallel = True # parallel GPU
+    parallel = False # parallel GPU
 
 
     device2 = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -130,7 +130,7 @@ if __name__ == '__main__':
         class_weights = [1, 7, 4, 1.5, 0.5,4]
         class_weights = torch.tensor(class_weights, device=device2,dtype=torch.float16)
 
-        iters = [400]
+        iters = [5]
         lr = 1e-5
         scals = 0
 
@@ -204,9 +204,9 @@ if __name__ == '__main__':
             ground_truth_folder=val_save_path,
             folds = n_folds,
             dir_checkpoint=dir_checkpoint,
-            logg=True,
+            logg=False,
             progressive=progressive,
             model_name='segformer',
-            val_sleep_time=300
+            val_sleep_time=-1
             # grad_wait=int(20 / 10)
         )
