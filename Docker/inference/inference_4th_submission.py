@@ -131,8 +131,8 @@ def inference_tissue(data_path,res,fold = None):
 
 
             #ensemble epidermis
-            pred_segmenter[4] = 0.5*pred_segmenter[4] + 0.5*pred_unet[4]
-            pred_segmenter[5] = 0.5*pred_segmenter[5] + 0.5*pred_unet[5]
+            # pred_segmenter[4] = 0.5*pred_segmenter[4] + 0.5*pred_unet[4]
+            # pred_segmenter[5] = 0.5*pred_segmenter[5] + 0.5*pred_unet[5]
             # pred_segmenter[2] = 0.5*pred_segmenter[2] + 0.5*pred_unet[2]#+ 0.33*pred_classifier[10]
 
             #replace blood from unet
