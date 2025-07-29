@@ -9,7 +9,7 @@ import torch
 import numpy as np
 from pathlib import Path
 import tifffile
-def inference_tissue(data_path,res,fold = None):
+def inference_tissue(data_path,res,fold = None,show_result = False):
     tissue_labels = ['tissue_white_background','tissue_stroma','tissue_blood_vessel','tissue_tumor','tissue_epidermis','tissue_necrosis']
     val_images = load_data_tissue(target_size= (1024,1024),data_path=data_path, tissue_labels= tissue_labels, im_size=(1024,1024))
     device2 = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -65,7 +65,16 @@ def inference_tissue(data_path,res,fold = None):
 
             new_file_path =  pth[0].replace('.tif','.npy')
             np.save(new_file_path, mask_pred)
+            if show_result:
+                im = np.transpose(image[0].cpu().numpy(), (1, 2, 0))
+                plt.subplot(1, 2, 1)
+                plt.imshow(im)
 
+                pm = mask_pred
+                plt.subplot(1, 2, 2)
+                plt.imshow(pm)
+
+                plt.show()
             # print(np.max(mask_pred))
             # plt.imshow(mask_pred)
             # plt.show()

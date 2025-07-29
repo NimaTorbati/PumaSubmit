@@ -15,7 +15,7 @@ import json
 import torch.nn.functional as F
 from utils_submit import calculate_micro_dice_score_with_masks
 from utils_submit import save_segformer_config
-def inference_tissue(data_path,res,fold = None):
+def inference_tissue(data_path,res,fold = None, show_result = False):
     tissue_labels = ['tissue_white_background','tissue_stroma','tissue_blood_vessel','tissue_tumor','tissue_epidermis','tissue_necrosis']
     val_images = load_data_tissue(target_size= (1024,1024),data_path=data_path, tissue_labels= tissue_labels, im_size=(1024,1024))
     # val_images = np.load('/home/ntorbati/STORAGE/PumaDataset/1024_ims/ims_panopt.npy')
@@ -154,6 +154,16 @@ def inference_tissue(data_path,res,fold = None):
             # Modify TIFF resolution metadata directly using tifffile
             new_file_path =  pth[0]
 
+            if show_result:
+                im = np.transpose(image[0].cpu().numpy(), (1, 2, 0))
+                plt.subplot(1, 2, 1)
+                plt.imshow(im)
+
+                pm = mask_pred
+                plt.subplot(1, 2, 2)
+                plt.imshow(pm)
+
+                plt.show()
 
             # tissue_pred_file = pth[0].replace('.tif','.txt')
             #

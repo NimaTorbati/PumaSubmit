@@ -79,8 +79,11 @@ def post_process_main(
         }
 
         # save JSON file
-        json_filename = os.path.join('/output/melanoma-3-class-nuclei-segmentation.json')
-        # json_filename = os.path.join(os.path.dirname(params["output_dir"]), 'melanoma-3-class-nuclei-segmentation.json')
+        if params['local']:
+            json_filename = params['nuclei_dir'].replace(".tif", ".json")
+
+        else:
+            json_filename = os.path.join('/output/melanoma-10-class-nuclei-segmentation.json')
         with open(json_filename, "w") as fp:
             json.dump(output_json, fp, indent=2)
         print(f"JSON file saved to {json_filename}")
@@ -187,9 +190,14 @@ def create_polygon_json_ours(pinst_out, pcls_out, params):
     # Create a class map using instance IDs from pcls_out
 
     # nuc_path = params['nuclei_pred_path']
-    nuc_path = params['p1'].replace(".tif", ".npy")
+    if params['local']:
+        nuc_path = params['nuclei_dir'].replace(".tif", ".npy")
+    else:
+        nuc_path = params['p1'].replace(".tif", ".npy")
     # inst_path = str(f"{nuc_path}").replace(".tif", "_inst.npy")
     # np.save(inst_path, full_instance_map)
+    print(nuc_path, params['p1'])
+
     class_map = np.load(nuc_path)
 
     # class_map = cv2.cvtColor(cv2.imread(nuc_path), cv2.COLOR_BGR2GRAY)

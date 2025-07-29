@@ -1,8 +1,8 @@
 ### Size thresholds for nuclei (in pixels), pannuke is less conservative
 # These have been optimized for the conic challenge, but can be changed
 # to get more small nuclei (e.g. by setting all min_threshs to 0)
-MIN_THRESHS = [10, 10, 10]
-MAX_THRESHS = [20000, 20000, 20000]
+MIN_THRESHS = [10, 10, 10,10, 10, 10,10, 10, 10,10]
+MAX_THRESHS = [20000, 20000, 20000,20000, 20000, 20000,20000, 20000, 20000,2000]
 
 # Maximal size of holes to remove from a nucleus
 MAX_HOLE_SIZE = 128

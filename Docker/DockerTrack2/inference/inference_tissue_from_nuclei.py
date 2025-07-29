@@ -33,7 +33,7 @@ def blood_join(nuc_res = None, unet_pred = None):
 
 
 
-def inference_tissue_nuclei(data_path,res,fold= None):
+def inference_tissue_nuclei(data_path,res,fold= None, show_result = False):
     tissue_labels = ['tissue_white_background','tissue_stroma','tissue_blood_vessel','tissue_tumor','tissue_epidermis','tissue_necrosis']
     val_images = load_data_tissue(target_size= (1024,1024),data_path=data_path, tissue_labels= tissue_labels, im_size=(1024,1024))
     device2 = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -151,7 +151,16 @@ def inference_tissue_nuclei(data_path,res,fold= None):
 
             # if (np.sum(mask_pred==5)>0):
             #     print('new necrosis')
+            if show_result:
+                im = np.transpose(image[0].cpu().numpy(), (1, 2, 0))
+                plt.subplot(1, 2, 1)
+                plt.imshow(im)
 
+                pm = mask_pred
+                plt.subplot(1, 2, 2)
+                plt.imshow(pm)
+
+                plt.show()
 
             # Write the image with the correct resolution
             with tifffile.TiffWriter(new_file_path) as tif:
