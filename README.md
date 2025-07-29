@@ -13,7 +13,7 @@ An example of how to run inference is shown in inference_offline.py:
 1. Download the model weights from the HuggingFace link and place them in: 'Docker/DockerTrack2/inference/'.
 
 2. Download HoverNext weights 'Hover-NeXt_all_classes' from: https://zenodo.org/records/13881999
-   Place the best_model file inside:
+   Place the 'best_model' file inside:
    'Docker/DockerTrack2/checkpoint/train/'.
 3. Update the image and prediction directory paths in inference_offline.py based on your operating system.
 4. Run inference_offline.py.
