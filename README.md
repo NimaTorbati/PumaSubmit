@@ -7,4 +7,5 @@ This repository contains the LSM team's code developed for the Panoptic Segmenta
 This project has been conducted through a joint WWTF-funded project (Grant ID: 10.47379/LS23006) between the Medical University of Vienna and Danube Private University.
 
 
-You can run 
+# Inference
+inference_offline.py scripts shows an example of the proposed method usage. Download weights and paste them in the 
