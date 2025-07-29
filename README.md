@@ -8,5 +8,12 @@ This project has been conducted through a joint WWTF-funded project (Grant ID: 1
 
 
 # Inference
-inference_offline.py scripts shows an example of the proposed method inference. Download weights from HuggingFace link and paste them in the this path: 'Docker/DockerTrack2/inference/Mo'. Downlaod HoverNext weights from this file: Weights can  https://zenodo.org/records/13881999.
-HoverNext weights 'best_model' in 
+An example of how to run inference is shown in inference_offline.py:
+
+1. Download the model weights from the HuggingFace link and place them in: 'Docker/DockerTrack2/inference/'.
+
+2. Download HoverNext weights from: https://zenodo.org/records/13881999
+   Place the best_model file inside:
+   'Docker/DockerTrack2/checkpoint/train/'.
+3. Update the image and prediction directory paths in inference_offline.py based on your operating system.
+4. Run inference_offline.py.
