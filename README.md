@@ -8,4 +8,4 @@ This project has been conducted through a joint WWTF-funded project (Grant ID: 1
 
 
 # Inference
-inference_offline.py scripts shows an example of the proposed method usage. Download weights and paste them in the 
+inference_offline.py scripts shows an example of the proposed method inference. Download weights from HuggingFace link and paste them in the this path: 'Docker/DockerTrack2/inference/Mo'.
