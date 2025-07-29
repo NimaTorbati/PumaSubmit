@@ -1,3 +1,6 @@
+
+# Update directory paths based on your operating system
+
 import numpy as np
 import os
 import sys
