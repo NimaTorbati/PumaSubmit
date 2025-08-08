@@ -1,11 +1,10 @@
-# Puma Challenge
+# A Multi-Stage Auto-Context Deep Learning Framework for Tissue and Nuclei Segmentation and Classification in H&E-Stained Histological Images of Advanced Melanoma
 This repository contains the LSM team's code developed for the Panoptic Segmentation of Nuclei and Tissue in Advanced Melanoma (PUMA) Challenge 
 <br/>[Puma Challenge Website](https://puma.grand-challenge.org/#panoptic-segmentation-of-nuclei-and-tissue-in-advanced-melanoma)
 <br/>[Our Model weights](https://huggingface.co/datasets/NiToLSM/PumaWeightsNiTo_LSM)
 <br/>[Puma Dataset Paper](https://academic.oup.com/gigascience/article/doi/10.1093/gigascience/giaf011/8024182?login=false)
 <br/>Acknowledgment:
 This project has been conducted through a joint WWTF-funded project (Grant ID: 10.47379/LS23006) between the Medical University of Vienna and Danube Private University.
-
 
 # Inference
 An example of how to run inference for 10 nuclei classes is shown in inference_offline.py:
@@ -17,3 +16,7 @@ An example of how to run inference for 10 nuclei classes is shown in inference_o
    'Docker/DockerTrack2/checkpoint/train/'.
 3. Update the image and prediction directory paths in inference_offline.py based on your operating system.
 4. Run inference_offline.py.
+
+# Citation
+A preprint version of our paper is publicy available at: 
+<br/>[Paper](https://arxiv.org/abs/2503.23958)
