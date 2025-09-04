@@ -5,6 +5,7 @@ This repository contains the LSM team's code developed for the Panoptic Segmenta
 <br/>[Puma Dataset Paper](https://academic.oup.com/gigascience/article/doi/10.1093/gigascience/giaf011/8024182?login=false)
 <br/>Acknowledgment:
 This project has been conducted through a joint WWTF-funded project (Grant ID: 10.47379/LS23006) between the Medical University of Vienna and Danube Private University.
+<img width="1110" height="222" alt="image" src="https://github.com/user-attachments/assets/6d4c5f83-f314-4bc1-8fb3-06372cb4e059" />
 
 # Inference
 An example of how to run inference for 10 nuclei classes is shown in inference_offline.py:
