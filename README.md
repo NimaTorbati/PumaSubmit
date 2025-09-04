@@ -22,8 +22,7 @@ Stage 1: 'The first stage of the proposed method. In this stage, a SegFormer mod
 trained to classify the input image type (primary or metastatic) based on segmentation
 result and the classification rules.' <img width="3100" height="1088" alt="stage1" src="https://github.com/user-attachments/assets/22003e0a-04cf-4b31-8e31-3d53966d641e" />
 
-Stage 2: 'The second stage of the proposed method. Initial tissue segmentation is per-
-formed using two SegFormer models, one for primary tissues and the other for metastatic
+Stage 2: 'The second stage of the proposed method. Initial tissue segmentation is performed using two SegFormer models, one for primary tissues and the other for metastatic
 tissues. Due to the Segformer model’s poor performance in segmenting blood vessels, a
 U-Net model is trained separately for blood vessel detection and the results are refined
 using the tissue ensemble rules. Color code for tissue segmentation: red for tumor, blue
