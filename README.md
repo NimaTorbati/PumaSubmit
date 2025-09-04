@@ -16,6 +16,8 @@ An example of how to run inference for 10 nuclei classes is shown in inference_o
    'Docker/DockerTrack2/checkpoint/train/'.
 3. Update the image and prediction directory paths in inference_offline.py based on your operating system.
 4. Run inference_offline.py.
+# Model Stages
+Stage 1: <img width="3100" height="1088" alt="stage1" src="https://github.com/user-attachments/assets/22003e0a-04cf-4b31-8e31-3d53966d641e" />
 
 # Citation
 A preprint version of our paper is publicy available at: 
