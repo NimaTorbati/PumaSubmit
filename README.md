@@ -8,7 +8,7 @@ This project has been conducted through a joint WWTF-funded project (Grant ID: 1
 <img width="1110" height="222" alt="image" src="https://github.com/user-attachments/assets/6d4c5f83-f314-4bc1-8fb3-06372cb4e059" />
 
 # Inference
-An example of how to run inference for 10 nuclei classes is shown in inference_offline.py:
+An example of how to run inference for 10 nuclei and 6 tissue classes is shown in inference_offline.py:
 
 1. Download the model weights from the HuggingFace link and place them in: 'Docker/DockerTrack2/inference/'.
 
