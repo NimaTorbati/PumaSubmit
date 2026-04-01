@@ -74,6 +74,7 @@ if __name__ == "__main__":
     #     encoder_name="resnet50",
     # )
 
+
     # model1 = get_hovernext(out_channels_cls=1,
     #                       out_channels_inst=5,
     #                       pretrained=True, )
