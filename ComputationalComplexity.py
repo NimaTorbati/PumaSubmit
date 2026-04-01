@@ -58,12 +58,12 @@ if __name__ == "__main__":
     num_samples = 205
 
 
-    num_output_channels = 6  # for 6 segmentation classes
+    num_output_channels = 6
     config = SegformerConfig.from_pretrained("nvidia/segformer-b2-finetuned-ade-512-512")
-    num_input_channels = in_channels  # for RGB images
+    num_input_channels = in_channels
     config.num_channels = num_input_channels
-    config.num_labels = num_output_channels  # Set the number of segmentation classes
-    config.image_size = 1024  # Ensure input image size is 1024x1024
+    config.num_labels = num_output_channels
+    config.image_size = 1024
 
     # Initialize the model (without pretrained weights)
     model1 = SegformerForSemanticSegmentation(config)
