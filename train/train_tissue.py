@@ -130,8 +130,8 @@ if __name__ == '__main__':
         class_weights = [1, 7, 4, 1.5, 0.5,4]
         class_weights = torch.tensor(class_weights, device=device2,dtype=torch.float16)
 
-        iters = [5]
-        lr = 1e-5
+        iters = [200]
+        lr = 1e-3
         scals = 0
 
 
