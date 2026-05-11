@@ -169,8 +169,8 @@ if __name__ == '__main__':
         ]
 
         class_weights = torch.tensor(class_weights, device=device2,dtype=torch.float16)
-        iters = [80]
-        lr = 1e-6
+        iters = [200]
+        lr = 1e-3
 
         scals = 0
 
@@ -182,7 +182,7 @@ if __name__ == '__main__':
             decoder_channels=(256, 128, 64, 32, 16),
         )
 
-        fineTune_PATH = "/home/ntorbati/PycharmProjects/pythonProject/E:/b/Model_weights/foldNucleiUnetPP4" + str(folds) + "/checkpoint_epoch1.pth"
+        # fineTune_PATH = "/home/ntorbati/PycharmProjects/pythonProject/E:/b/Model_weights/foldNucleiUnetPP4" + str(folds) + "/checkpoint_epoch1.pth"
 
         cp = torch.load(fineTune_PATH, weights_only=True,map_location="cuda:0")
         if "module." in list(cp.keys())[0]:
